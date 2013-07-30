@@ -10,6 +10,7 @@
 <script src="js/fastclick.js"></script>
 <script src="js/cordova.js"></script>
 <script src="js/barcodescanner.js"></script>
+<script src="js/jquery.mobile.dynamic.popup.min.js"></script>
 <link rel="stylesheet" href="css/jquery.mobile-1.3.1.min.css">
 <link rel="stylesheet" href="css/custom.css">
 
@@ -220,8 +221,6 @@
     
 	var MSG_SEM_INTERNET  = "Sem conexão internet." +
 							"Verifique sua configuração de rede e tente novamente mais tarde."
-
-
     
     var prevSelection = "tab1";
     
@@ -252,6 +251,9 @@
         $("#fechar").click(function(){
             mudaTab($("#linkTab2"))
         });
+                      
+                      mensagem("Teste");mensagem("Teste2");
+
 	});
 		
 	$("#pageHome").on("pagebeforeshow", function(event){ 
@@ -285,7 +287,7 @@
                 console.log("Obteve o JSON de ranking para o email: "+email);
                 $.mobile.loading('hide');
                 if (response.status == "ERROR") {
-                    alert(response.msgRet);
+                    mensagem(response.msgRet);
                 }else{
                     var usuario = response.usuario;
                     var ranking = response.ranking;
@@ -305,7 +307,6 @@
                 
                     $("#tabelaRanking").empty();
                     $.each(ranking,function(i,qr){
-                           console.log(qr.toString());
                         $("#tabelaRanking").append("<tr><td class='posicao'>"+ (i+1) +"º</td><td class='nome'>"+qr.nome+"</td><td class='total'>"+qr.pontos+"</td></tr>");
                     });
                 
@@ -314,7 +315,7 @@
             "error": function(xOptions, textStatus) {
                 console.log("Falha ao tentar obter o Ranking");
                 $.mobile.loading('hide');
-                alert("Ocorreu um erro na consulta ao Ranking. " + MSG_SEM_INTERNET);
+                mensagem("Ocorreu um erro na consulta ao Ranking. " + MSG_SEM_INTERNET);
             }
         });
         
@@ -372,14 +373,14 @@
 		window.plugins.barcodeScanner.scan(function(result) {
 
 			var texto = result.text;
-//			var texto = "SERPRO#INFO#9#Quer ganhar 50 pontos? Compareça à palestra Mobilidade e GEO que começa às 11h na área Casos de sucesso sala 713. Não esqueça de pegar o material na saída para responder a pergunta e saber qual é o próximo desafio. #0";
+//			var texto = "SERPRO#JSON#1#;
 
 			if (!hasValue(texto)) {
 				return false;
 			}
 			 			
 			if (!texto.match("^SERPRO")) {
-				alert("Este QR-Code não pertence ao GAME SERPRO");
+				mensagem("Este QR-Code não pertence ao GAME SERPRO");
 				return false;
 			}
 
@@ -387,7 +388,7 @@
                                         
 		}, function(error) {
             console.log(error);
-			alert("Ocorreu um erro na leitura do QR-Code. Tenta novamente.");
+			mensagem("Ocorreu um erro na leitura do QR-Code. Tenta novamente.");
 		});
         $.mobile.loading('hide');
 	}
@@ -416,7 +417,7 @@
                     console.log("Response: "+response);
                     $.mobile.loading('hide');
                     if (response.status == "ERROR") {
-                        alert(response.msgRet);
+                        mensagem(response.msgRet);
                     }else{
                         var tipo = response.tipo;
                         var texto = response.texto;
@@ -428,7 +429,7 @@
                 "error": function(xOptions, textStatus) {
                     console.log("Falha ao tentar obter o QRCode");
                     $.mobile.loading('hide');
-                    alert("Ocorreu um erro na leitura do QR-Code. " + MSG_SEM_INTERNET);
+                    mensagem("Ocorreu um erro na leitura do QR-Code. " + MSG_SEM_INTERNET);
                 }
         });
     }
@@ -496,7 +497,7 @@
 	    var networkState = navigator.connection.type;
 
 	    if (networkState == 'undefined' || networkState == Connection.NONE) {
-	    	alert(MSG_SEM_INTERNET);
+	    	mensagem(MSG_SEM_INTERNET);
 	    	return false;
 	    } 
 		return true;	    	
@@ -507,7 +508,7 @@
         
         if($("#resposta").is(':visible')){
             if (!hasValue(resposta)) {
-                alert("Preencha a resposta!");
+                mensagem("Preencha a resposta!");
                 return false;
             }
         }
@@ -515,7 +516,7 @@
         if($("#grupoRadioButton").is(':visible')){
             resposta = $('input[name=respostaME]:checked').val();
             if (!hasValue(resposta)) {
-                alert("Escolha uma alternativa");
+                mensagem("Escolha uma alternativa");
                 return false;
             }
         }
@@ -532,7 +533,7 @@
 	        "success": function(response, textStatus) {
 	        	 $.mobile.loading('hide');
 	        	if (response.status = "OK") {	        		
-        			alert(response.msgRet);
+        			mensagem(response.msgRet);
         			if (response.codRet == "OK") {
 	        			updateQRCode(qrId, true);
 					} else if (response.codRet == "ERRO-RE") {
@@ -549,7 +550,7 @@
 	        },
 	        "error": function(xOptions, textStatus) {
 	        	 $.mobile.loading('hide');
-	        	alert("Ocorreu um erro no Envio da Resposta. " + MSG_SEM_INTERNET);
+	        	mensagem("Ocorreu um erro no Envio da Resposta. " + MSG_SEM_INTERNET);
 	        }
 	    });
 	}
@@ -557,12 +558,12 @@
 	function submeterCadastro() {
         console.log("Submetendo cadastro");
 		if ($("#nome").val() == "" || $("#sobrenome").val() == "" || $("#email").val() == "" || $("#telefone").val() == "") {
-			alert("Preencha todas as informações");
+			mensagem("Preencha todas as informações");
 			return false;
 		}
 		
 		if (!validateEmail($("#email").val())) {
-			alert("Informe um endereço de e-mail válido");
+			mensagem("Informe um endereço de e-mail válido");
 			return false;
 		}
 
@@ -581,7 +582,7 @@
 	        "success": function(response, textStatus) {
                 $.mobile.loading('hide');
 	        	if (response.codRet == "ERRO") {
-	        		alert(response.msgRet);
+	        		mensagem(response.msgRet);
 	        	} else {
 			      	lsSet("email",$("#email").val());
 		      		lsSet("nome",$("#nome").val());
@@ -593,7 +594,7 @@
 	        "error": function(xOptions, textStatus) {
                 $.mobile.loading('hide');
 	        	console.log(textStatus);
-                alert("Ocorreu um erro no Cadastramento do Usuário. " + MSG_SEM_INTERNET);
+                mensagem("Ocorreu um erro no Cadastramento do Usuário. " + MSG_SEM_INTERNET);
                 
 	        }
 	    });
@@ -609,6 +610,13 @@
             return o;
     }
 
+                      
+    function mensagem(msg){
+        $.dynamic_popup({
+            content: '<p>' + msg + '</p>',
+            closeBtnLabel: 'Fechar'
+        });
+    }
         
     
 </script>
