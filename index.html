@@ -45,11 +45,10 @@
 </script>
 
 </head>
-<body onload="onDeviceReady()">
-    
-    	
+<body>
 	<div data-role="page" id="pageHome">
 		<div data-role="header" data-theme="b">
+			<a id="sairBtn" href='#pagelink' class='ui-btn-right' data-icon='home' data-theme="b" >Sair</a>
 			<h1>{ GAME LIVRE }</h1>
 		</div>
         <div data-role="navbar" id="navbar" class="navbar-black">
@@ -59,7 +58,6 @@
                 <li id="linkTab3" class="tabLink" data-tab-class="tab3"><img src="img/trofeu_ico.png" ></li>
                 <li id="linkTab4" class="tabLink" data-tab-class="tab4"><img src="img/user_ico.png" ></li>
                 <li id="linkTab5" class="pontos" data-tab-class="tab5" style="text-align: center;">
-                    
                     <b id="pontuacao" class="pontuacao">300</b><br/><i class="texto-pontuacao">pontos</i>
                 </li>
             </ul>
@@ -272,7 +270,11 @@
         $("#trCompartilhar").click(function(){
         	compartilhar();
         }); 
-                      
+             
+        
+        $("#sairBtn").click(function(){
+        	sair();
+        }); 
 
 	});
 		
@@ -285,7 +287,13 @@
             atualizarRankingPerfil();          
 		}
 	});	
-					
+			
+	function sair(){
+		changePage("pageCadastro");
+		limpaLS();
+		limpaDB();
+	}
+	
 	function hasValue(field) {
 		return(field != null && field != undefined && $.trim(field) != "");
 	}
@@ -333,7 +341,7 @@
                 }
             },
             "error": function(xOptions, textStatus) {
-                console.log("Falha ao tentar obter o Ranking");
+                console.log("Falha ao tentar obter o Ranking: "+textStatus);
                 $.mobile.loading('hide');
                 mensagem("Ocorreu um erro na consulta ao Ranking. " + MSG_SEM_INTERNET);
             }
@@ -377,7 +385,7 @@
 
 	function changePage(page) {
 		$.mobile.changePage("#" + page, {
-  			transition : 'fade'
+  			transition : 'none'
   		});
 	}
 	
