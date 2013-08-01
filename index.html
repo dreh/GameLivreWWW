@@ -29,6 +29,7 @@
 	if (navigator.userAgent.toLowerCase().match(/android/)) {
 		document.write('<script src="js/android/cordova-2.7.0.js"><\/script>');
 		document.write('<script src="js/android/barcodescanner.js"><\/script>');
+		document.write('<script src="js/android/webintent.js"><\/script>');
 	} else if (navigator.userAgent.toLowerCase().match(/iphone/)
 			|| navigator.userAgent.toLowerCase().match(/ipad/)) {
 		document.write('<script src="js/ios/cordova-2.7.0.js"><\/script>');
@@ -40,26 +41,6 @@
 
 	function onDeviceReady() {
 		console.log("device is ready");
-		/* document.write('<script src="js/barcodescanner.js"><\/script>');
-		document.write('<script src="js/social.js"><\/script>');
-	 */
-		// Configurando o plugin social para iOS
-		/* var deviceOS  = device.platform;
-		console.log("Plataforma :"+deviceOS);
-		if (deviceOS == "iOS"){
-		window.plugins.social.available(function(avail) {
-		    if (avail) {
-		        $("#trCompartilhar").click(function(){
-		            window.plugins.social.share(
-		                                        'Venha participar do GAME LIVRE',
-		                                        'http://www.serpro.gov.br',
-		                                        'www/img/icon.jpg');
-		        });
-		    } else {
-		        $("#trCompartilhar").remove();
-		    }
-		});
-		} */
 	}
 </script>
 
@@ -288,7 +269,9 @@
         });
         
         
-        
+        $("#trCompartilhar").click(function(){
+        	compartilhar();
+        }); 
                       
 
 	});
@@ -655,6 +638,36 @@
         });
     }
         
+    function compartilhar(){
+    	// Configurando o plugin social para iOS
+		var deviceOS  = device.platform;
+		console.log("Plataforma :"+deviceOS);
+		if (deviceOS == "iOS"){
+			window.plugins.social.available(
+				function(avail) {
+			    	window.plugins.social.share(
+                         'Venha participar do GAME LIVRE',
+                         'http://www.serpro.gov.br',
+                         'www/img/icon.jpg');
+			});
+		}else{
+			var extras = {};
+			extras[window.plugins.webintent.EXTRA_SUBJECT] = "{GAME LIVRE}";
+			extras[window.plugins.webintent.EXTRA_TEXT] = "Venha participar do GAME LIVRE";
+			window.plugins.webintent.startActivity(
+				{
+			    	action: window.plugins.webintent.ACTION_SEND,
+			    	type: 'text/plain',
+			    	extras: extras
+			    }, 
+			    function() {}, 
+			    function() {alert('Failed to open URL via Android Intent')}
+			);
+			
+		} 
+    	
+    }
+    
     
 </script>
 <script src="js/db.js"></script>
