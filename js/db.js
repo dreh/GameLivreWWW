@@ -1,5 +1,5 @@
 
-var db = openDatabase ("Fisl14", "1.0", "Fisl14", 65535);
+var db = openDatabase ("GameLivre", "1.0", "GameLivre", 65535);
 
 db.transaction (function (transaction) {
     var sql = "CREATE TABLE IF NOT EXISTS qrcode " +
@@ -41,6 +41,25 @@ function limpaDB() {
   });
 }
 
+function insertQRCodeCompleto(id,texto, tipo, alternativas, acertou, pontos){
+  db.transaction (function (transaction){
+    var sql = "insert into qrcode (id,texto,tipo,alternativas,acertou,pontos) values (?,?,?,?,?,?)";
+    transaction.executeSql (sql, [id,texto,tipo,alternativas,acertou,pontos], function (){
+      console.log("qrcode salvo.")    
+    }, error);
+  });
+}
+
+function updateQRCode(id, acertou){
+	console.log('Atualizando qrcode com id = ' + id + ' e acertou = ' + acertou);
+  db.transaction (function (transaction){
+    var sql = "update qrcode set acertou = ? where id = ?";
+    transaction.executeSql (sql, [acertou,id], function (){
+      console.log("qrcode atualizado.")
+    }, error);
+  });
+}
+
 function insertQRCode(id,texto, tipo, pontos,a, callback){
   db.transaction (function (transaction){
     var sql = "insert into qrcode (id,texto,tipo,pontos,alternativas) values (?,?,?,?,?)";
@@ -53,16 +72,6 @@ function insertQRCode(id,texto, tipo, pontos,a, callback){
     	console.log("qrcode pré-existente")
         callback(id);
     });
-  });
-}
-
-function updateQRCode(id, acertou){
-	console.log('Atualizando qrcode com id = ' + id + ' e acertou = ' + acertou);
-  db.transaction (function (transaction){
-    var sql = "update qrcode set acertou = ? where id = ?";
-    transaction.executeSql (sql, [acertou,id], function (){
-      console.log("qrcode atualizado.")
-    }, error);
   });
 }
 

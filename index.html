@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>SERPRO GAMES</title>
+<title>Game Livre</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <script src="js/jquery.js"></script>
@@ -53,11 +53,7 @@
 </head>
 <body>
 	<div data-role="page" id="pageHome">
-		<div data-role="header" data-theme="b">
-			<a id="sairBtn" href='#pagelink' class='ui-btn-right' data-icon='home' data-theme="b" >Sair</a>
-			<h1>{ GAME LIVRE }</h1>
-		</div>
-        <div data-role="navbar" id="navbar" class="navbar-black">
+		<div data-role="navbar" id="navbar" class="navbar-black">
             <ul>
                 <li id="linkTab1" class="tabLink" data-tab-class="tab1"><img src="img/qrcode_ico.png"></li>
                 <li id="linkTab2" class="tabLink" data-tab-class="tab2"><img src="img/info_ico.png" ></li>
@@ -237,7 +233,7 @@
 
 
 	var DOMINIO = "http://fislgames-exmo.rhcloud.com";
-    //var DOMINIO = "http://192.168.0.162:9000";
+    //var DOMINIO = "http://10.200.239.38:9000";
     
 	var MSG_SEM_INTERNET  = "Sem conexão internet." +
 							"Verifique sua configuração de rede e tente novamente mais tarde."
@@ -258,7 +254,7 @@
             mudaTab($(this));
         });
        
-		$("#btnCadastrar").click(submeterCadastro);	
+		$("#btnCadastrar").click(verificaSeCadastraOuAtualiza);	
 		$("#btLerQRCode").click(scan);
 		$("#responder").click(enviarResposta);
 				
@@ -358,7 +354,7 @@
 	function montaLista() {
 		var total = 0;
 		var email = lsGet("email");
-		var nome = lsGet("nome");
+		
 		$("#tabelaQRcode").empty();
 		listQRCode(function(lista){
 			var bubblePontosStyle = "";
@@ -366,7 +362,6 @@
 			$.each(lista,function(i,qr){	
 				var status = "semresposta";
 				var pontos = "";
-				
 				if (qr.tipo == 'DESAFIO' || qr.tipo == 'DESAFIOME') {
 					pontos = qr.pontos;
 					if (qr.acertou != null) {
@@ -589,10 +584,86 @@
 	    });
 	}
 	
+	function consultarUsuario(callback){
+		console.log("Consultando se o usuario já está cadastrado");
+		var url_consulta_usuario = DOMINIO+"/usuario/consultar/"+$("#email").val()+"?callback=?";
+		$.jsonp({
+	    	"url": url_consulta_usuario,
+	    	"success": function(response, textStatus) {
+           		$.mobile.loading('hide');
+	    		if (response.codRet == "ERRO") {
+	    			callback(false);
+	    		} else {
+		   			callback(true);
+				}      			
+       		},
+       		"error": function(xOptions, textStatus) {
+           		$.mobile.loading('hide');
+           		mensagem("Ocorreu um erro na consulta do Usuário. " + MSG_SEM_INTERNET);
+	        }
+	    });
+		
+	}	
+	
+	function preencheRespostasUsuario(){
+		console.log("Preenchendo as respostas do usuario");		
+		var url_respostas_usuario = DOMINIO+"/respostasCompletas/"+$("#email").val()+"?callback=?";		
+		$.jsonp({
+	    	"url": url_respostas_usuario,
+	    	"success": function(response, textStatus) {
+           		$.mobile.loading('hide');           		
+	    		if (response.codRet == "ERRO") {	    			
+	    			alert(response.msgRet);
+	    			mensagem(response.msgRet);
+	    		} else {
+	    			limpaDB();	    			
+		   			var respostas = response.respostas;		   			                    
+                    for (var i=0;i<respostas.length;i++){
+                    	var acertou = false;
+                    	if(respostas[i].pontos == respostas[i].pontuacao){
+                    		acertou = true;
+                    	}
+						insertQRCodeCompleto(respostas[i].id,respostas[i].texto,respostas[i].tipo,respostas[i].alternativas,acertou,respostas[i].pontuacao);	
+					}
+				}
+				changePage("pageHome");      			
+       		},
+       		"error": function(xOptions, textStatus) {       			
+           		$.mobile.loading('hide');
+           		mensagem("Ocorreu um erro ao preencher as respostas do Usuário. " + MSG_SEM_INTERNET);
+	        }
+	    });
+	}
+	
+	function verificaSeCadastraOuAtualiza(){
+		console.log("Verificando se é para cadastrar ou atualizar o usuario");
+		if (!checkInternet()) {
+			return false;	
+		}
+		
+		if($("#email").val() == ""){
+			mensagem("Preencha seu email");
+		}else{
+			consultarUsuario(function (result){
+				if(result){
+					lsSet("email",$("#email").val());					
+      				preencheRespostasUsuario();
+				}else{
+					submeterCadastro();
+				}
+			});
+			
+			
+		}	
+	}
+	
 	function submeterCadastro() {
         console.log("Submetendo cadastro");
+        var url = DOMINIO+"/usuario/criar/"+$("#email").val()+"/"+$("#nome").val()+" "+$("#sobrenome").val()+"/"+$("#telefone").val()+"?callback=?";
+				
+		
 		if ($("#nome").val() == "" || $("#sobrenome").val() == "" || $("#email").val() == "" || $("#telefone").val() == "") {
-			mensagem("Preencha todas as informações");
+			mensagem("Esse usuário ainda não foi cadastrado. Para cadastrá-lo é necessário preencher todas as informações");
 			return false;
 		}
 		
@@ -600,36 +671,30 @@
 			mensagem("Informe um endereço de e-mail válido");
 			return false;
 		}
-
-		if (!checkInternet()) {
-			return false;	
-		}
-        
-        $.mobile.loading('show');
 		
-		var url = DOMINIO+"/usuario/criar/"+$("#email").val()+"/"+$("#nome").val()+" "+$("#sobrenome").val()+"/"+$("#telefone").val()+"?callback=?";
-	
+		$.mobile.loading('show');
+		
         console.log(url);
         
 	    $.jsonp({
 	    	"url": url,
-	        "success": function(response, textStatus) {
-                $.mobile.loading('hide');
-	        	if (response.codRet == "ERRO") {
-	        		mensagem(response.msgRet);
-	        	} else {
-			      	lsSet("email",$("#email").val());
-		      		lsSet("nome",$("#nome").val());
-                    lsSet("sobrenome",$("#sobrenome").val());
-		      		lsSet("telefone",$("#telefone").val());
+	    	"success": function(response, textStatus) {
+           		$.mobile.loading('hide');
+	    		if (response.codRet == "ERRO") {
+	    			alert(response.msgRet);
+	    			mensagem(response.msgRet);
+	    		} else {
+		   			lsSet("email",$("#email").val());
+					lsSet("nome",$("#nome").val());
+               		lsSet("sobrenome",$("#sobrenome").val());
+					lsSet("telefone",$("#telefone").val());
 				}			      	
-		      	changePage("pageHome");
-	        },
-	        "error": function(xOptions, textStatus) {
-                $.mobile.loading('hide');
-	        	console.log(textStatus);
-                mensagem("Ocorreu um erro no Cadastramento do Usuário. " + MSG_SEM_INTERNET);
-                
+      			changePage("pageHome");
+       		},
+       		"error": function(xOptions, textStatus) {
+           		$.mobile.loading('hide');
+       			console.log(textStatus);
+           		mensagem("Ocorreu um erro no Cadastramento do Usuário. " + MSG_SEM_INTERNET);
 	        }
 	    });
 	}
