@@ -612,9 +612,8 @@
 	    	"url": url_respostas_usuario,
 	    	"success": function(response, textStatus) {
            		$.mobile.loading('hide');           		
-	    		if (response.codRet == "ERRO") {	    			
-	    			alert(response.msgRet);
-	    			mensagem(response.msgRet);
+	    		if (response.codRet == "ERRO-RE" || response.codRet == "ERRO") {
+                    console.log(response.msgRet);
 	    		} else {
 	    			limpaDB();	    			
 		   			var respostas = response.respostas;		   			                    
